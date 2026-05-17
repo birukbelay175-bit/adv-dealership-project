@@ -28,6 +28,7 @@ public class UserInterface {
             System.out.println("7 - Find vehicles by type");
             System.out.println("8 - Add a vehicle");
             System.out.println("9 - Remove a vehicle");
+            System.out.println("10 - Sell/Lease a vehicle");
             System.out.println("99 - Quit");
 
             System.out.print("Enter your choice: ");
@@ -72,6 +73,9 @@ public class UserInterface {
                 case 9:
                     processRemoveVehicleRequest();
                     break;
+                case 10:
+                    processContract();
+                    break;
 
                 case 99:
                     System.out.println("Goodbye!");
@@ -85,9 +89,17 @@ public class UserInterface {
     }
 
     private void init() {
-        DealershipFileManager fileManager = new DealershipFileManager();
-        this.dealership = fileManager.getDealership();
-    }
+            DealershipFileManager fileManager = new DealershipFileManager();
+            this.dealership = fileManager.getDealership();
+
+            if (this.dealership == null) {
+                this.dealership = new Dealership(
+                        "D & B Used Cars",
+                        "111 Old Benbrook Rd",
+                        "817-555-5555"
+                );
+            }
+        }
 
     public void processGetAllVehiclesRequest() {
         ArrayList<Vehicle> vehicles = dealership.getAllVehicles();
@@ -237,7 +249,73 @@ public class UserInterface {
             System.out.println("Vehicle not found.");
         }
     }
+    public void processContract() {
 
+        System.out.print("Enter VIN of vehicle: ");
+        int vin = scanner.nextInt();
+        scanner.nextLine();
+
+        Vehicle selectedVehicle = null;
+
+        for (Vehicle vehicle : dealership.getAllVehicles()) {
+
+            if (vehicle.getVin() == vin) {
+                selectedVehicle = vehicle;
+                break;
+            }
+        }
+
+        if (selectedVehicle == null) {
+            System.out.println("Vehicle not found.");
+            return;
+        }
+
+        System.out.print("Customer name: ");
+        String name = scanner.nextLine();
+
+        System.out.print("Customer email: ");
+        String email = scanner.nextLine();
+
+        System.out.print("Sell or Lease? (S/L): ");
+        String option = scanner.nextLine();
+
+        Contract contract;
+
+        if (option.equalsIgnoreCase("S")) {
+
+            System.out.print("Finance? (yes/no): ");
+            String financeOption = scanner.nextLine();
+
+            boolean finance = financeOption.equalsIgnoreCase("yes");
+
+            contract = new SalesContract(
+                    "2025-05-17",
+                    name,
+                    email,
+                    selectedVehicle,
+                    finance
+            );
+
+        } else {
+
+            contract = new LeaseContract(
+                    "2025-05-17",
+                    name,
+                    email,
+                    selectedVehicle
+            );
+        }
+
+        ContractDataManager contractDataManager = new ContractDataManager();
+        contractDataManager.saveContract(contract);
+
+        dealership.removeVehicle(selectedVehicle);
+
+        DealershipFileManager fileManager = new DealershipFileManager();
+        fileManager.saveDealership(dealership);
+
+        System.out.println("Contract processed successfully.");
+    }
     private void displayVehicles(ArrayList<Vehicle> vehicles) {
 
         if (vehicles.size() == 0) {

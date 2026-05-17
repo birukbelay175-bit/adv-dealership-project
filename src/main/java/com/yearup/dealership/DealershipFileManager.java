@@ -86,7 +86,7 @@ public class DealershipFileManager {
             writer.close();
 
         } catch (Exception e) {
-            System.out.println("Error saving file: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
